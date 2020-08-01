@@ -253,12 +253,12 @@ do_reset:
   li x29, 0
   li x30, 0
   li x31, 0
-  csrw mscratch, x0
+  csrw mscratch, x0 #清零
 
   # write mtvec and make sure it sticks
   la t0, trap_vector
   csrw mtvec, t0
-  csrr t1, mtvec
+  csrr t1, mtvec  #异常入口地址
 1:bne t0, t1, 1b  #中断向量表没设置好，死循环
 
   la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE
@@ -317,3 +317,4 @@ do_reset:
   .align RISCV_PGSHIFT
 stacks:
   .skip RISCV_PGSIZE * MAX_HARTS
+  # 用于分配一块连续的存储区域并初始化为指定的值，如果后面的填充值省略不写则在后面填充为0;
