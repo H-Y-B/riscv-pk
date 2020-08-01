@@ -259,7 +259,7 @@ do_reset:
   la t0, trap_vector
   csrw mtvec, t0
   csrr t1, mtvec
-1:bne t0, t1, 1b
+1:bne t0, t1, 1b  #中断向量表没设置好，死循环
 
   la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE
 
@@ -267,7 +267,7 @@ do_reset:
   slli a2, a3, RISCV_PGSHIFT
   add sp, sp, a2
 
-  bnez a3, .LmultiHartInit
+  bnez a3, .LmultiHartInit #如果不为0，表示有多个hart
 
 #ifdef ZERO_BSS
   # Zero out BSS; linker script provides alignment and padding
