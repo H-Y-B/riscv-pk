@@ -162,10 +162,10 @@ static void mem_prop(const struct fdt_scan_prop *prop, void *extra)
 {
   struct mem_scan *scan = (struct mem_scan *)extra;
   if (!strcmp(prop->name, "device_type") && !strcmp((const char*)prop->value, "memory")) {
-    scan->memory = 1;
+    scan->memory = 1; //表示找到memory设备
   } else if (!strcmp(prop->name, "reg")) {
-    scan->reg_value = prop->value;
-    scan->reg_len = prop->len;
+    scan->reg_value = prop->value;//起始地址
+    scan->reg_len   = prop->len;  //大小
   }
 }
 
