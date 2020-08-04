@@ -123,6 +123,8 @@ static void plic_init()
     plic_priorities[i] = 1;
 }
 
+
+//PRCI (Power, Reset, Clock, Interrupt)
 static void prci_test()
 {
   assert(!(read_csr(mip) & MIP_MSIP));
@@ -136,6 +138,7 @@ static void prci_test()
   *HLS()->timecmp = -1ULL;
 }
 
+//Hart-local storage(HLS)
 static void hart_plic_init()
 {
   // clear pending interrupts

@@ -8,27 +8,27 @@
   .align 6
 trap_table:
 #define BAD_TRAP_VECTOR 0
-  .dc.a bad_trap
-  .dc.a pmp_trap
-  .dc.a illegal_insn_trap
-  .dc.a bad_trap
-  .dc.a misaligned_load_trap
-  .dc.a pmp_trap
-  .dc.a misaligned_store_trap
-  .dc.a pmp_trap
-  .dc.a bad_trap
-  .dc.a mcall_trap
-  .dc.a bad_trap
-#ifdef BBL_BOOT_MACHINE
-  .dc.a mcall_trap
-#else
-  .dc.a bad_trap
+  .dc.a bad_trap              #0 poweroff
+  .dc.a pmp_trap              #1
+  .dc.a illegal_insn_trap     #2
+  .dc.a bad_trap              #3 poweroff
+  .dc.a misaligned_load_trap  #4
+  .dc.a pmp_trap              #5
+  .dc.a misaligned_store_trap #6
+  .dc.a pmp_trap              #7
+  .dc.a bad_trap              #8 poweroff
+  .dc.a mcall_trap            #9
+  .dc.a bad_trap              #10poweroff
+#ifdef BBL_BOOT_MACHINE     
+  .dc.a mcall_trap            #11
+#else                       
+  .dc.a bad_trap              #11 poweroff
 #endif /* BBL_BOOT_MACHINE */
-  .dc.a bad_trap
+  .dc.a bad_trap              #12 poweroff
 #define TRAP_FROM_MACHINE_MODE_VECTOR 13
-  .dc.a __trap_from_machine_mode
-  .dc.a bad_trap
-  .dc.a bad_trap
+  .dc.a __trap_from_machine_mode#14
+  .dc.a bad_trap                #15 poweroff
+  .dc.a bad_trap                #16 poweroff
 
   .option norvc
   .section .text.init,"ax",@progbits
@@ -37,14 +37,14 @@ reset_vector:
   j do_reset
 
 trap_vector:
-  csrrw sp, mscratch, sp
+  csrrw sp, mscratch, sp            #切换栈（U、S）->M
   beqz sp, .Ltrap_from_machine_mode
 
   STORE a0, 10*REGBYTES(sp)
   STORE a1, 11*REGBYTES(sp)
 
-  csrr a1, mcause
-  bgez a1, .Lhandle_trap_in_machine_mode
+  csrr a1, mcause #参数2
+  bgez a1, .Lhandle_trap_in_machine_mode # 大于0 跳转到
 
   # This is an interrupt.  Discard the mcause MSB and decode the rest.
   sll a1, a1, 1
@@ -63,8 +63,8 @@ trap_vector:
   # Go back whence we came.
   LOAD a0, 10*REGBYTES(sp)
   LOAD a1, 11*REGBYTES(sp)
-  csrrw sp, mscratch, sp
-  mret
+  csrrw sp, mscratch, sp        #切换栈（U、S）<- M
+  mret                          #从机器模式异常处理返回
 
 1:
   # Is it an IPI?
@@ -116,13 +116,13 @@ trap_vector:
   STORE t2, 7*REGBYTES(sp)
   add t1, t0, t1                   # t1 <- %hi(trap_table)[mcause]
   STORE s0, 8*REGBYTES(sp)
-  LOAD t1, %pcrel_lo(1b)(t1)       # t1 <- trap_table[mcause]
+  LOAD t1, %pcrel_lo(1b)(t1)       # t1 <- trap_table[mcause] 跳转地址
   STORE s1, 9*REGBYTES(sp)
-  mv a0, sp                        # a0 <- regs
+  mv a0, sp                        # a0 <- regs  参数1
   STORE a2,12*REGBYTES(sp)
-  csrr a2, mepc                    # a2 <- mepc
+  csrr a2, mepc                    # a2 <- mepc  参数3
   STORE a3,13*REGBYTES(sp)
-  csrrw t0, mscratch, x0           # t0 <- user sp
+  csrrw t0, mscratch, x0           # t0 <- user sp <- 0
   STORE a4,14*REGBYTES(sp)
   STORE a5,15*REGBYTES(sp)
   STORE a6,16*REGBYTES(sp)
@@ -195,11 +195,11 @@ restore_regs:
   mret
 
 .Ltrap_from_machine_mode:
-  csrr sp, mscratch
+  csrr sp, mscratch       #（U、S）
   addi sp, sp, -INTEGER_CONTEXT_SIZE
-  STORE a0,10*REGBYTES(sp)
-  STORE a1,11*REGBYTES(sp)
-  li a1, TRAP_FROM_MACHINE_MODE_VECTOR
+  STORE a0,10*REGBYTES(sp) 
+  STORE a1,11*REGBYTES(sp) 
+  li a1, TRAP_FROM_MACHINE_MODE_VECTOR#参数2
   j .Lhandle_trap_in_machine_mode
 
 .Lbad_trap:

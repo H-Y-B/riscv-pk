@@ -136,7 +136,7 @@ void mcall_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
       retval = mcall_console_putchar(arg0);
       break;
     case SBI_CONSOLE_GETCHAR:
-      retval = mcall_console_getchar();
+      retval = mcall_console_getchar();//外部中断
       break;
     case SBI_SEND_IPI:
       ipi_type = IPI_SOFT;

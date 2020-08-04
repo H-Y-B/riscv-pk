@@ -129,7 +129,7 @@ static void htif_prop(const struct fdt_scan_prop *prop, void *extra)
 {
   struct htif_scan *scan = (struct htif_scan *)extra;
   if (!strcmp(prop->name, "compatible") && !strcmp((const char*)prop->value, "ucb,htif0")) {
-    scan->compat = 1;
+    scan->compat = 1;//找到该设备
   }
 }
 
@@ -141,6 +141,8 @@ static void htif_done(const struct fdt_scan_node *node, void *extra)
   htif = 1;
 }
 
+
+//主机目标接口  Host-‐Target Interface( HTIF )
 void query_htif(uintptr_t fdt)
 {
   struct fdt_cb cb;

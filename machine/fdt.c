@@ -162,7 +162,7 @@ static void mem_prop(const struct fdt_scan_prop *prop, void *extra)
 {
   struct mem_scan *scan = (struct mem_scan *)extra;
   if (!strcmp(prop->name, "device_type") && !strcmp((const char*)prop->value, "memory")) {
-    scan->memory = 1; //表示找到memory设备
+    scan->memory = 1;             //表示找到memory设备
   } else if (!strcmp(prop->name, "reg")) {
     scan->reg_value = prop->value;//起始地址
     scan->reg_len   = prop->len;  //大小
@@ -438,10 +438,10 @@ static void plic_done(const struct fdt_scan_node *node, void *extra)
         break;
     if (hart < MAX_HARTS) {
       hls_t *hls = OTHER_HLS(hart);
-      if (cpu_int == IRQ_M_EXT) {
+      if (cpu_int == IRQ_M_EXT) {       //机器模式下的外部中断
         hls->plic_m_ie     = (uintptr_t*)((uintptr_t)scan->reg + ENABLE_BASE + ENABLE_SIZE * index);
         hls->plic_m_thresh = (uint32_t*) ((uintptr_t)scan->reg + HART_BASE   + HART_SIZE   * index);
-      } else if (cpu_int == IRQ_S_EXT) {
+      } else if (cpu_int == IRQ_S_EXT) {//监管者模式下的外部中断
         hls->plic_s_ie     = (uintptr_t*)((uintptr_t)scan->reg + ENABLE_BASE + ENABLE_SIZE * index);
         hls->plic_s_thresh = (uint32_t*) ((uintptr_t)scan->reg + HART_BASE   + HART_SIZE   * index);
       } else {

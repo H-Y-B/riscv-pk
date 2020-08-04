@@ -45,6 +45,7 @@ static void finisher_done(const struct fdt_scan_node *node, void *extra)
   finisher = (uint32_t*)(uintptr_t)scan->reg;
 }
 
+//SiFive Test (Test Finisher) for exiting simulations in tests
 void query_finisher(uintptr_t fdt)
 {
   struct fdt_cb cb;
