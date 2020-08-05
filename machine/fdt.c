@@ -400,11 +400,13 @@ static void plic_prop(const struct fdt_scan_prop *prop, void *extra)
     scan->compat = 1;
   } else if (!strcmp(prop->name, "reg")) {
     fdt_get_address(prop->node->parent, prop->value, &scan->reg);
+    //基地址
   } else if (!strcmp(prop->name, "interrupts-extended")) {
     scan->int_value = prop->value;
-    scan->int_len = prop->len;
+    scan->int_len   = prop->len;
   } else if (!strcmp(prop->name, "riscv,ndev")) {
     scan->ndev = bswap(prop->value[0]);
+    //有几个设备（外部中断）
   }
 }
 
@@ -416,8 +418,8 @@ static void plic_prop(const struct fdt_scan_prop *prop, void *extra)
 static void plic_done(const struct fdt_scan_node *node, void *extra)
 {
   struct plic_scan *scan = (struct plic_scan *)extra;
-  const uint32_t *value = scan->int_value;
-  const uint32_t *end = value + scan->int_len/4;
+  const uint32_t *value  = scan->int_value;
+  const uint32_t *end    = value + scan->int_len/4;
 
   if (!scan->compat) return;
   assert (scan->reg != 0);
@@ -427,7 +429,7 @@ static void plic_done(const struct fdt_scan_node *node, void *extra)
 
   scan->done = 1;
   plic_priorities = (uint32_t*)(uintptr_t)scan->reg;
-  plic_ndevs = scan->ndev;
+  plic_ndevs      = scan->ndev;//有几个设备（外部中断）
 
   for (int index = 0; end - value > 0; ++index) {
     uint32_t phandle = bswap(value[0]);

@@ -46,7 +46,7 @@ static void mstatus_init()
 
   // Disable paging
   if (supports_extension('S'))
-    write_csr(sptbr, 0);
+    write_csr(sptbr, 0);       //satp
 }
 
 // send S-mode interrupts and most exceptions straight to S-mode
@@ -174,22 +174,22 @@ static void wake_harts()
 void init_first_hart(uintptr_t hartid, uintptr_t dtb)
 {
   // Confirm console as early as possible
-  query_uart(dtb);
-  query_uart16550(dtb);
-  query_htif(dtb);
+  //query_uart(dtb);
+  //query_uart16550(dtb);
+  //query_htif(dtb);
   printm("bbl loader\r\n");
 
   hart_init();
   hls_init(0); // this might get called again from parse_config_string
 
   // Find the power button early as well so die() works
-  query_finisher(dtb);
+  //query_finisher(dtb);
 
   query_mem(dtb);
   query_harts(dtb);
   query_clint(dtb);
   query_plic(dtb);
-  query_chosen(dtb);
+  //query_chosen(dtb);
 
   wake_harts();
 
