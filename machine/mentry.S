@@ -34,8 +34,10 @@ trap_table:
   .section .text.init,"ax",@progbits
   .globl reset_vector
 reset_vector:
-  j do_reset
+  j do_reset  #开始
 
+
+#异常和中断处理
 trap_vector:
   csrrw sp, mscratch, sp            #切换栈（U、S）->M
   beqz sp, .Ltrap_from_machine_mode
@@ -199,7 +201,7 @@ restore_regs:
   addi sp, sp, -INTEGER_CONTEXT_SIZE
   STORE a0,10*REGBYTES(sp) 
   STORE a1,11*REGBYTES(sp) 
-  li a1, TRAP_FROM_MACHINE_MODE_VECTOR#参数2
+  li a1, TRAP_FROM_MACHINE_MODE_VECTOR#参数2 
   j .Lhandle_trap_in_machine_mode
 
 .Lbad_trap:
