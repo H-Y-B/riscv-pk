@@ -55,7 +55,7 @@ static void delegate_traps()
   if (!supports_extension('S'))
     return;
 
-  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
+  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;//将机器模式下的 软件、时钟、外部中断 交由 S模式处理
   uintptr_t exceptions =
     (1U << CAUSE_MISALIGNED_FETCH) |
     (1U << CAUSE_FETCH_PAGE_FAULT) |
@@ -64,8 +64,11 @@ static void delegate_traps()
     (1U << CAUSE_STORE_PAGE_FAULT) |
     (1U << CAUSE_USER_ECALL);
 
+  //delegate exceptions and interrupts to supervisor mode
   write_csr(mideleg, interrupts);
   write_csr(medeleg, exceptions);
+
+
   assert(read_csr(mideleg) == interrupts);
   assert(read_csr(medeleg) == exceptions);
 }
@@ -127,7 +130,7 @@ static void plic_init()
 //PRCI (Power, Reset, Clock, Interrupt)
 static void prci_test()
 {
-  assert(!(read_csr(mip) & MIP_MSIP));
+  assert(!(read_csr(mip) & MIP_MSIP));//要求 MSIP为0
   *HLS()->ipi = 1;
   assert(read_csr(mip) & MIP_MSIP);
   *HLS()->ipi = 0;

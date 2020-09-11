@@ -54,12 +54,11 @@ trap_vector:
   # Is it a machine timer interrupt?
   li a0, IRQ_M_TIMER * 2
   bne a0, a1, 1f
-
-  # Yes.  Simply clear MTIE and raise STIP.
-  li a0, MIP_MTIP
-  csrc mie, a0
-  li a0, MIP_STIP
-  csrs mip, a0
+  # Yes.  Simply clear MTIE and raise STIP. 时钟中断处理
+  li a0, MIP_MTIP  
+  csrc mie, a0   #清除 M-时钟中断
+  li a0, MIP_STIP 
+  csrs mip, a0   #设置 S-时钟中断 
 
 .Lmret:
   # Go back whence we came.
@@ -68,7 +67,7 @@ trap_vector:
   csrrw sp, mscratch, sp        #切换栈（U、S）<- M
   mret                          #从机器模式异常处理返回
 
-1:
+1:            #软件中断处理
   # Is it an IPI?
   li a0, IRQ_M_SOFT * 2
   bne a0, a1, .Lbad_trap
@@ -88,7 +87,7 @@ trap_vector:
 #endif
   and a1, a0, IPI_SOFT
   beqz a1, 1f
-  csrs mip, MIP_SSIP
+  csrs mip, MIP_SSIP  #设置  M-软件中断
 1:
   andi a1, a0, IPI_FENCE_I
   beqz a1, 1f
@@ -263,6 +262,7 @@ do_reset:
   csrr t1, mtvec  #异常入口地址
 1:bne t0, t1, 1b  #中断向量表没设置好，死循环
 
+
   la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE
 
   csrr a3, mhartid
@@ -286,12 +286,12 @@ do_reset:
   j init_first_hart
 
 .LmultiHartInit:
-  # set MSIE bit to receive IPI
-  li a2, MIP_MSIP
-  csrw mie, a2
+  # set MSIE bit to receive IPI 核间中断(Inter-Processor Interrupts,IPI）
+  li a2, MIP_MSIP 
+  csrw mie, a2     #使能 M-软件中断
 
 .LmultiHart:
-#if MAX_HARTS > 1
+#if MAX_HARTS > 1    # MAX_HARTS=8
   # wait for an IPI to signal that it's safe to boot
   wfi
 
@@ -302,7 +302,7 @@ do_reset:
   andi a4, a4, 1
   bnez a4, .LmultiHart
 
-  # only start if mip is set
+  # only start if mip is set  等待软中断
   csrr a2, mip
   andi a2, a2, MIP_MSIP
   beqz a2, .LmultiHart
@@ -310,7 +310,7 @@ do_reset:
   # make sure our hart id is within a valid range
   fence
   li a2, MAX_HARTS
-  bltu a3, a2, init_other_hart
+  bltu a3, a2, init_other_hart #另一个hart初始化
 #endif
   wfi
   j .LmultiHart
