@@ -46,9 +46,9 @@ int uart16550_getchar()
 struct uart16550_scan
 {
   int compat;
-  uint64_t reg;
-  uint32_t reg_offset;
-  uint32_t reg_shift;
+  uint64_t reg;       //基地址
+  uint32_t reg_offset;//寄存器整体偏移量
+  uint32_t reg_shift; //偏移量单位
   uint32_t clock_freq;
   uint32_t baud;
 };
@@ -68,14 +68,22 @@ static void uart16550_prop(const struct fdt_scan_prop *prop, void *extra)
     scan->compat = 1;
   } else if (!strcmp(prop->name, "reg")) {
     fdt_get_address(prop->node->parent, prop->value, &scan->reg);
-  } else if (!strcmp(prop->name, "reg-shift")) {
-    scan->reg_shift = fdt_get_value(prop, 0);
-  } else if (!strcmp(prop->name, "reg-offset")) {
+  } 
+  else if (!strcmp(prop->name, "reg-shift")) 
+  {
+    scan->reg_shift = fdt_get_value(prop, 0);//偏移量单位
+  } 
+  else if (!strcmp(prop->name, "reg-offset")) 
+  {
     scan->reg_offset = fdt_get_value(prop, 0);
-  } else if (!strcmp(prop->name, "current-speed")) {
+  } 
+  else if (!strcmp(prop->name, "current-speed")) 
+  {
     // This is the property that Linux uses
     scan->baud = fdt_get_value(prop, 0);
-  } else if (!strcmp(prop->name, "clock-frequency")) {
+  } 
+  else if (!strcmp(prop->name, "clock-frequency")) 
+  {
     scan->clock_freq = fdt_get_value(prop, 0);
   }
 }
@@ -97,7 +105,7 @@ static void uart16550_done(const struct fdt_scan_node *node, void *extra)
     divisor = uart16550_clock / (16 * UART_DEFAULT_BAUD);
 
   uart16550 = (void*)((uintptr_t)scan->reg + scan->reg_offset);
-  uart16550_reg_shift = scan->reg_shift;
+  uart16550_reg_shift = scan->reg_shift;//偏移量单位
   // http://wiki.osdev.org/Serial_Ports
   uart16550[UART_REG_IER << uart16550_reg_shift] = 0x00;                // Disable all interrupts
   uart16550[UART_REG_LCR << uart16550_reg_shift] = 0x80;                // Enable DLAB (set baud rate divisor)
