@@ -57,15 +57,15 @@ static uint32_t *fdt_scan_helper(
         if (node && !strcmp(prop.name, "#address-cells")) { node->address_cells = bswap(lex[3]); }
         if (node && !strcmp(prop.name, "#size-cells"))    { node->size_cells    = bswap(lex[3]); }
         lex += 3 + (prop.len+3)/4;
-        cb->prop(&prop, cb->extra);
+        cb->prop(&prop, cb->extra);//执行prop函数
         break;
       }
       case FDT_BEGIN_NODE: {
         uint32_t *lex_next;
-        if (!last && node && cb->done) cb->done(node, cb->extra);
+        if (!last && node && cb->done) cb->done(node, cb->extra);//执行done函数
         last = 1;
         child.name = (const char *)(lex+1);
-        if (cb->open) cb->open(&child, cb->extra);
+        if (cb->open) cb->open(&child, cb->extra);//执行open函数
         lex_next = fdt_scan_helper(
           lex + 2 + strlen(child.name)/4,
           strings, &child, cb);
@@ -75,11 +75,11 @@ static uint32_t *fdt_scan_helper(
         break;
       }
       case FDT_END_NODE: {
-        if (!last && node && cb->done) cb->done(node, cb->extra);
+        if (!last && node && cb->done) cb->done(node, cb->extra);//执行done函数
         return lex + 1;
       }
       default: { // FDT_END
-        if (!last && node && cb->done) cb->done(node, cb->extra);
+        if (!last && node && cb->done) cb->done(node, cb->extra);//执行done函数
         return lex;
       }
     }
