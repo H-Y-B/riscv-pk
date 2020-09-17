@@ -88,9 +88,9 @@ static uintptr_t mcall_shutdown()
 
 static uintptr_t mcall_set_timer(uint64_t when)
 {
-  *HLS()->timecmp = when;
-  clear_csr(mip, MIP_STIP);
-  set_csr(mie, MIP_MTIP);
+  *HLS()->timecmp = when;   //设置新的时间
+  clear_csr(mip, MIP_STIP); //清除 S-time中断
+  set_csr(mie, MIP_MTIP);   //使能 M-time中断
   return 0;
 }
 
