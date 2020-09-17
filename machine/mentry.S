@@ -288,12 +288,18 @@ do_reset:
 .LmultiHartInit:
   # set MSIE bit to receive IPI 核间中断(Inter-Processor Interrupts,IPI）
   li a2, MIP_MSIP 
-  csrw mie, a2     #使能 M-软件中断
+  csrw mie, a2     #使能 M-软件中断 (中断局部开关)
 
 .LmultiHart:
 #if MAX_HARTS > 1    # MAX_HARTS=8
   # wait for an IPI to signal that it's safe to boot
   wfi
+  #当处理器执行到WFI指令之后，将会停止执行当前的指令流，进入一种空闲状态。
+  #这种空闲状态可以被称为“休眠"状态,直到处理器接收到中断（中断局部开关必须被打开，由mie寄存器控制），处理器便被唤醒。
+  #处理器被唤醒后，
+  #如果中断被全局打开(mstatus寄存器的MIE域控制），则进入中断异常服务程序开始执行；
+  #如果中断被全局关闭，则继续顺序执行之前停止的指令流;
+
 
   # masked harts never start
   la a4, disabled_hart_mask
