@@ -101,7 +101,7 @@ static void fp_init()
 hls_t* hls_init(uintptr_t id)
 {
   hls_t* hls = OTHER_HLS(id);
-  memset(hls, 0, sizeof(*hls));
+  memset(hls, 0, sizeof(*hls));//清零
   return hls;
 }
 

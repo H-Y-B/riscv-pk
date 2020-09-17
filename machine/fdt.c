@@ -348,10 +348,12 @@ static void clint_done(const struct fdt_scan_node *node, void *extra)
     for (hart = 0; hart < MAX_HARTS; ++hart)
       if (hart_phandles[hart] == phandle)
         break;
+    
+    //将HLS中的指针 与 CLINT 中的各个寄存器 绑定
     if (hart < MAX_HARTS) {
       hls_t *hls = OTHER_HLS(hart);
-      hls->ipi = (void*)((uintptr_t)scan->reg + index * 4);
-      hls->timecmp = (void*)((uintptr_t)scan->reg + 0x4000 + (index * 8));
+      hls->ipi = (void*)((uintptr_t)scan->reg + index * 4);                //Machine mode software interrupt (IPI)
+      hls->timecmp = (void*)((uintptr_t)scan->reg + 0x4000 + (index * 8)); //Machine mode timer compare register for Hart 0
     }
     value += 4;
   }
@@ -410,9 +412,9 @@ static void plic_prop(const struct fdt_scan_prop *prop, void *extra)
   }
 }
 
-#define HART_BASE	0x200000
+#define HART_BASE	0x200000 //偏移量：Priority threshold for context 0
 #define HART_SIZE	0x1000
-#define ENABLE_BASE	0x2000
+#define ENABLE_BASE	0x2000 //偏移量： Enable bits for sources 0-31 on context 0
 #define ENABLE_SIZE	0x80
 
 static void plic_done(const struct fdt_scan_node *node, void *extra)
@@ -440,6 +442,8 @@ static void plic_done(const struct fdt_scan_node *node, void *extra)
         break;
     if (hart < MAX_HARTS) {
       hls_t *hls = OTHER_HLS(hart);
+
+      //将HLS中的指针 与 PLIC中的各个寄存器 绑定
       if (cpu_int == IRQ_M_EXT) {       //机器模式下的外部中断
         hls->plic_m_ie     = (uintptr_t*)((uintptr_t)scan->reg + ENABLE_BASE + ENABLE_SIZE * index);
         hls->plic_m_thresh = (uint32_t*) ((uintptr_t)scan->reg + HART_BASE   + HART_SIZE   * index);
@@ -451,7 +455,7 @@ static void plic_done(const struct fdt_scan_node *node, void *extra)
       }
     }
     value += 2;
-  }
+  }//end for 
 #if 0
   printm("PLIC: prio %x devs %d\r\n", (uint32_t)(uintptr_t)plic_priorities, plic_ndevs);
   for (int i = 0; i < MAX_HARTS; ++i) {
