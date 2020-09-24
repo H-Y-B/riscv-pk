@@ -137,6 +137,8 @@ static void plic_init()
 //PRCI (Power, Reset, Clock, Interrupt)
 static void prci_test()
 {
+  /* 检测 软件中断 和  时钟中断  是否能够 触发
+   */
   assert(!(read_csr(mip) & MIP_MSIP));//要求 MSIP为0
   *HLS()->ipi = 1;
   assert(read_csr(mip) & MIP_MSIP);
@@ -210,7 +212,7 @@ void init_first_hart(uintptr_t hartid, uintptr_t dtb)
 
   plic_init();
   hart_plic_init();
-  //prci_test();
+  //prci_test();  //检测 软件中断 和  时钟中断  是否能够 触发
   memory_init();
   boot_loader(dtb);
 }

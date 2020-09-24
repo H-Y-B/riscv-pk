@@ -67,27 +67,30 @@ trap_vector:
   csrrw sp, mscratch, sp        #切换栈（U、S）<- M
   mret                          #从机器模式异常处理返回
 
-1:            #软件中断处理
+
+1:   #软件中断处理
   # Is it an IPI?
   li a0, IRQ_M_SOFT * 2
   bne a0, a1, .Lbad_trap
 
   # Yes.  First, clear the MIPI bit.
-  LOAD a0, MENTRY_IPI_OFFSET(sp)
+  LOAD a0, MENTRY_IPI_OFFSET(sp) 
   sw x0, (a0)
   fence
 
-  # Now, decode the cause(s).
-#ifdef __riscv_atomic
+  # Now, decode the cause(s).  编译器内置宏定义
+#ifdef __riscv_atomic    
   addi a0, sp, MENTRY_IPI_PENDING_OFFSET
   amoswap.w a0, x0, (a0)
 #else
   lw a0, MENTRY_IPI_PENDING_OFFSET(sp)
   sw x0, MENTRY_IPI_PENDING_OFFSET(sp)
 #endif
+#4种ipi类型的处理方式 ，a0表示具体哪种类型
   and a1, a0, IPI_SOFT
   beqz a1, 1f
-  csrs mip, MIP_SSIP  #设置  M-软件中断
+  csrs mip, MIP_SSIP  #设置  M-软件中断;  IPI_SOFT类型的实现方式 是通过软件中断
+                      #                 下面的另外三种类型，是执行指令（fence.i、sfence.vma、wfi）
 1:
   andi a1, a0, IPI_FENCE_I
   beqz a1, 1f
