@@ -54,8 +54,14 @@ static void delegate_traps()
 {
   if (!supports_extension('S'))
     return;
-
-  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;//将机器模式下的 软件、时钟、外部中断 交由 S模式处理
+  /* 默认情况下
+   * all traps at any privilege level are handled in M-mode
+   * 
+   * 下面通过设置 mideleg 和 medeleg
+   * 将S模式下的 软件、时钟、外部中断 交由 S-mode处理
+   * 将S模式下的 6个异常            交由 S-mode处理
+   */
+  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
   uintptr_t exceptions =
     (1U << CAUSE_MISALIGNED_FETCH) |
     (1U << CAUSE_FETCH_PAGE_FAULT) |
