@@ -94,6 +94,7 @@ void boot_other_hart(uintptr_t unused __attribute__((unused)))
     mb();
   } while (!entry);
 
+  //查看 本hart 是否 被disable了
   long hartid = read_csr(mhartid);
   if ((1 << hartid) & disabled_hart_mask) {
     while (1) {

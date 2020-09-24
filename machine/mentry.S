@@ -60,6 +60,11 @@ trap_vector:
   li a0, MIP_STIP 
   csrs mip, a0   #设置 S-时钟中断 
 
+# SBI functions must return a pair of values in a0 and a1, with a0 returning an error code. 
+# struct sbiret {
+#       long error;
+#       long value;
+#   };
 .Lmret:
   # Go back whence we came.
   LOAD a0, 10*REGBYTES(sp)
@@ -100,12 +105,13 @@ trap_vector:
   beqz a1, 1f
   sfence.vma
 1:
-  andi a1, a0, IPI_HALT
+  andi a1, a0, IPI_HALT  # 本hart 停下来，等到a0被更改；  想要更改a0，退出halt，应该走 wfi的异常处理程序
   beqz a1, 1f
   wfi
   j 1b
 1:
   j .Lmret
+
 
 
 .Lhandle_trap_in_machine_mode:
@@ -262,7 +268,7 @@ do_reset:
   # write mtvec and make sure it sticks
   la t0, trap_vector
   csrw mtvec, t0
-  csrr t1, mtvec  #异常入口地址
+  csrr t1, mtvec  #异常入口地址   这里写入的是M模式的中断异常入口
 1:bne t0, t1, 1b  #中断向量表没设置好，死循环
 
 

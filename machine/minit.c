@@ -113,7 +113,7 @@ hls_t* hls_init(uintptr_t id)
 
 static void memory_init()
 {
-  mem_size = mem_size / MEGAPAGE_SIZE * MEGAPAGE_SIZE;
+  mem_size = mem_size / MEGAPAGE_SIZE * MEGAPAGE_SIZE;//页对齐
 }
 
 static void hart_init()
