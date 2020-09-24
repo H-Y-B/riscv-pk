@@ -95,11 +95,32 @@ static inline void wfi()
 #define MENTRY_IPI_OFFSET (MENTRY_HLS_OFFSET)
 #define MENTRY_IPI_PENDING_OFFSET (MENTRY_HLS_OFFSET + REGBYTES)
 
+/*
+    -------------------------------------------------------------------------------------
+                                                                                    ^
+    INTEGER_CONTEXT_SIZE=32*8                                                       |
+                                                                                    |
+    --------------------------                                                      |
+                                                                                    |
+    SOFT_FLOAT_CONTEXT_SIZE=0                                                       |
+                                                                                    |  MENTRY_FRAME_SIZE
+    --------------------------MENTRY_HLS_OFFSET  MENTRY_IPI_OFFSET   ^              |
+                                                                     |              |
+    REGBYTES=8                                                       |              |
+                                                                     |HLS_SIZE=64   |
+    --------------------------MENTRY_IPI_PENDING_OFFSET              |              |
+                                                                     |              |
+                                                                     v              v
+    ------------------------------------------------------------------------------------
+*/
+
+//编译器内置宏定义
 #ifdef __riscv_flen
 # define SOFT_FLOAT_CONTEXT_SIZE 0
 #else
 # define SOFT_FLOAT_CONTEXT_SIZE (8 * 32)
 #endif
+
 #define HLS_SIZE 64
 #define INTEGER_CONTEXT_SIZE (32 * REGBYTES)
 
