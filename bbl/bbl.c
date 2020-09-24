@@ -90,7 +90,7 @@ void boot_other_hart(uintptr_t unused __attribute__((unused)))
 {
   const void* entry;
   do {
-    entry = entry_point;
+    entry = entry_point; //payload的起始地址
     mb();
   } while (!entry);
 
