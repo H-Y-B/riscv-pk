@@ -128,6 +128,7 @@ static void hart_init()
 
 static void plic_init()
 {
+  //将 每个设备的 中断优先级设置为 1
   for (size_t i = 1; i <= plic_ndevs; i++)
     plic_priorities[i] = 1;
 }
@@ -166,6 +167,11 @@ static void hart_plic_init()
         HLS()->plic_s_ie[i] = ULONG_MAX;
      }
   }
+
+  /* plic阈值
+   * The PLIC will mask（屏蔽） all PLIC interrupts of a priority less than or equal to threshold. 
+   * For example, a`threshold` value of zero permits all interrupts with non-zero priority.
+   */
   *HLS()->plic_m_thresh = 1;
   if (HLS()->plic_s_thresh) {
       // Supervisor not always present
