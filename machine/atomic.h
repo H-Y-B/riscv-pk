@@ -47,7 +47,7 @@ static inline int spinlock_trylock(spinlock_t* lock)
   return res;
 }
 
-static inline void spinlock_lock(spinlock_t* lock)
+static inline void spinlock_lock(spinlock_t* lock)//自旋锁-加锁
 {
   do
   {
@@ -56,7 +56,7 @@ static inline void spinlock_lock(spinlock_t* lock)
   } while (spinlock_trylock(lock));
 }
 
-static inline void spinlock_unlock(spinlock_t* lock)
+static inline void spinlock_unlock(spinlock_t* lock)//自旋锁-解锁
 {
   mb();
   atomic_set(&lock->lock,0);

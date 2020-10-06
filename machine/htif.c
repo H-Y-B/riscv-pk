@@ -54,14 +54,14 @@ int htif_console_getchar()
   return -1;
 #endif
 
-  spinlock_lock(&htif_lock);
+  spinlock_lock(&htif_lock);//加锁
     __check_fromhost();
     int ch = htif_console_buf;
     if (ch >= 0) {
       htif_console_buf = -1;
       __set_tohost(1, 0, 0);
     }
-  spinlock_unlock(&htif_lock);
+  spinlock_unlock(&htif_lock);//解锁
 
   return ch - 1;
 }
@@ -100,9 +100,9 @@ void htif_console_putchar(uint8_t ch)
   magic_mem[3] = 1;
   do_tohost_fromhost(0, 0, (uintptr_t)magic_mem);
 #else
-  spinlock_lock(&htif_lock);
+  spinlock_lock(&htif_lock);//加锁
     __set_tohost(1, 1, ch);
-  spinlock_unlock(&htif_lock);
+  spinlock_unlock(&htif_lock);//解锁
 #endif
 }
 
