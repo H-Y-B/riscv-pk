@@ -272,7 +272,7 @@ do_reset:
 1:bne t0, t1, 1b  #中断向量表没设置好，死循环
 
 
-  la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE
+  la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE  #本hart的页中申请了 MENTRY_FRAME_SIZE 大小的区域
 
   csrr a3, mhartid
   slli a2, a3, RISCV_PGSHIFT
@@ -330,8 +330,39 @@ do_reset:
   wfi
   j .LmultiHart
 
+
+
+
+
+
   .bss
   .align RISCV_PGSHIFT
 stacks:
   .skip RISCV_PGSIZE * MAX_HARTS
   # 用于分配一块连续的存储区域并初始化为指定的值，如果后面的填充值省略不写则在后面填充为0;
+  # 分配了 8 个页大小的区域，给支持的最多8个hart使用
+  /*
+
+          ......
+ --------------------------------5*RISCV_PGSIZE
+ --------------------------------4*RISCV_PGSIZE
+ --------------------------------3*RISCV_PGSIZE 
+      |
+  MENTRY_FRAME_SIZE
+      |
+ -------------------  sp2
+ 
+ --------------------------------2*RISCV_PGSIZE
+      |
+  MENTRY_FRAME_SIZE
+      |
+ -------------------  sp1
+ 
+ --------------------------------1*RISCV_PGSIZE
+      |
+  MENTRY_FRAME_SIZE
+      |
+ -------------------  sp0
+ 
+ --------------------------------0
+  */
