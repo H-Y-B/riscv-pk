@@ -37,11 +37,12 @@ extern volatile uint32_t* plic_priorities;
 extern size_t plic_ndevs;
 
 typedef struct {
-  volatile uint32_t* ipi;
+  volatile uint32_t* ipi;    //绑定CLINT中的寄存器
   volatile int mipi_pending;
 
-  volatile uint64_t* timecmp;
+  volatile uint64_t* timecmp;//绑定CLINT中的寄存器
 
+  //绑定PLIC中的寄存器
   volatile uint32_t* plic_m_thresh;
   volatile uintptr_t* plic_m_ie;
   volatile uint32_t* plic_s_thresh;

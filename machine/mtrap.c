@@ -55,12 +55,16 @@ void printm(const char* s, ...)
   va_end(vl);
 }
 
-static void send_ipi(uintptr_t recipient, int event)
+static void send_ipi(uintptr_t recipient, int event)//recipient 接受者（CPU）
 {
   if (((disabled_hart_mask >> recipient) & 1)) return;
   atomic_or(&OTHER_HLS(recipient)->mipi_pending, event);
+  /*     
+   *    mipi_pending=  mipi_pending or event
+   * */
   mb();
-  *OTHER_HLS(recipient)->ipi = 1;
+  *OTHER_HLS(recipient)->ipi = 1;//向CLINT的ipi寄存器 置1
+  								 //会触发 相应接受者（CPU）的软件中断
 }
 
 static uintptr_t mcall_console_getchar()
@@ -133,12 +137,14 @@ void mcall_trap(uintptr_t* regs, uintptr_t mcause, uintptr_t mepc)
   switch (n)
   {
     case SBI_CONSOLE_PUTCHAR:
-      retval = mcall_console_putchar(arg0);
+      retval = mcall_console_putchar(arg0);//打印信息
       break;
     case SBI_CONSOLE_GETCHAR:
-      retval = mcall_console_getchar();//外部中断
+      retval = mcall_console_getchar();    //接受信息
       break;
-    case SBI_SEND_IPI:
+
+
+	case SBI_SEND_IPI:                     //IPI
       ipi_type = IPI_SOFT;
       goto send_ipi;
     case SBI_REMOTE_SFENCE_VMA:
@@ -151,6 +157,8 @@ send_ipi:
       send_ipi_many((uintptr_t*)arg0, ipi_type);
       retval = 0;
       break;
+
+
     case SBI_CLEAR_IPI:
       retval = mcall_clear_ipi();
       break;
