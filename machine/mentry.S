@@ -8,29 +8,31 @@
   .align 6
 trap_table:
 #define BAD_TRAP_VECTOR 0
-  .dc.a bad_trap              #0 poweroff
-  .dc.a pmp_trap              #1
-  .dc.a illegal_insn_trap     #2
-  .dc.a bad_trap              #3 poweroff
-  .dc.a misaligned_load_trap  #4
-  .dc.a pmp_trap              #5
-  .dc.a misaligned_store_trap #6
-  .dc.a pmp_trap              #7
-  .dc.a bad_trap              #8 poweroff
-  .dc.a mcall_trap            #9
-  .dc.a bad_trap              #10poweroff
+  .dc.a bad_trap              #0 poweroff instruction address misaligned
+  .dc.a pmp_trap              #1          instruction access fault
+  .dc.a illegal_insn_trap     #2          illegal instruction
+  .dc.a bad_trap              #3 poweroff breakpoint
+  .dc.a misaligned_load_trap  #4          load address misaligned
+  .dc.a pmp_trap              #5          load access fault
+  .dc.a misaligned_store_trap #6          store/amo address misaligned
+  .dc.a pmp_trap              #7          store/amo access fault
+  .dc.a bad_trap              #8 poweroff ecall from U
+  .dc.a mcall_trap            #9          ecall from S
+  .dc.a bad_trap              #10poweroff R
 #ifdef BBL_BOOT_MACHINE     
-  .dc.a mcall_trap            #11
+  .dc.a mcall_trap            #11         ecall from M
 #else                       
-  .dc.a bad_trap              #11 poweroff
+  .dc.a bad_trap              #11poweroff ecall from N
 #endif /* BBL_BOOT_MACHINE */
-  .dc.a bad_trap              #12 poweroff
-#define TRAP_FROM_MACHINE_MODE_VECTOR 13
-  .dc.a __trap_from_machine_mode#14
+  .dc.a bad_trap              #12poweroff instruction page fault
+#define TRAP_FROM_MACHINE_MODE_VECTOR 13 
+  .dc.a __trap_from_machine_mode#14   
   .dc.a bad_trap                #15 poweroff
   .dc.a bad_trap                #16 poweroff
 
-  .option norvc
+
+
+  .option norvc  #接下来的汇编程序不可以被汇编生成16位宽的压缩指令
   .section .text.init,"ax",@progbits
   .globl reset_vector
 reset_vector:
@@ -46,7 +48,7 @@ trap_vector:
   STORE a1, 11*REGBYTES(sp)
 
   csrr a1, mcause #参数2
-  bgez a1, .Lhandle_trap_in_machine_mode # 大于0 跳转到
+  bgez a1, .Lhandle_trap_in_machine_mode # 大于0，为异常，跳转到 Lhandle_trap_in_machine_mode
 
   # This is an interrupt.  Discard the mcause MSB and decode the rest.
   sll a1, a1, 1
@@ -158,7 +160,7 @@ trap_vector:
 #endif
   STORE x0, (sp) # Zero x0's save slot.
 
-  # Invoke the handler.
+  # Invoke the handler. 跳转到对应的异常处理程序
   jalr t1
 
 #ifndef __riscv_flen
@@ -276,7 +278,7 @@ do_reset:
 
   csrr a3, mhartid
   slli a2, a3, RISCV_PGSHIFT
-  add sp, sp, a2
+  add sp, sp, a2  //选择属于 hart自己的 那一页
 
   bnez a3, .LmultiHartInit #如果不为0，表示有多个hart
 
@@ -311,7 +313,7 @@ do_reset:
 
 
   # masked harts never start
-  la a4, disabled_hart_mask
+  la a4, disabled_hart_mask  # disabled_hart_mask 是由 0 号核  根据设备数设置的
   LOAD a4, 0(a4)
   srl a4, a4, a3
   andi a4, a4, 1
