@@ -191,9 +191,9 @@ static void wake_harts()
 void init_first_hart(uintptr_t hartid, uintptr_t dtb)
 {
   // Confirm console as early as possible
-  //query_uart(dtb);
-  //query_uart16550(dtb);
-  //query_htif(dtb);
+  query_uart(dtb);
+  query_uart16550(dtb);
+  query_htif(dtb);
   printm("bbl loader\r\n");
 
   hart_init();
@@ -249,10 +249,10 @@ void enter_supervisor_mode(void (*fn)(uintptr_t), uintptr_t arg0, uintptr_t arg1
   uintptr_t *p_fcsr = MACHINE_STACK_TOP() - MENTRY_FRAME_SIZE; // the x0's save slot
   *p_fcsr = 0;
 #endif
-  write_csr(mepc, fn);//payload的起始地址
+  write_csr(mepc, fn);//rest_of_boot_loader
 
-  register uintptr_t a0 asm ("a0") = arg0;
-  register uintptr_t a1 asm ("a1") = arg1;
+  register uintptr_t a0 asm ("a0") = arg0;//kernel_stack_top
+  register uintptr_t a1 asm ("a1") = arg1;//0
   asm volatile ("mret" : : "r" (a0), "r" (a1));
   __builtin_unreachable();
 }

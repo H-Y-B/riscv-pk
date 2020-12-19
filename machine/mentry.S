@@ -276,14 +276,15 @@ do_reset:
 
 
   la sp, stacks + RISCV_PGSIZE - MENTRY_FRAME_SIZE  #本hart的页中申请了 MENTRY_FRAME_SIZE 大小的区域
+                                                    #sp=0x8000_aec0
 
   csrr a3, mhartid
   slli a2, a3, RISCV_PGSHIFT
-  add sp, sp, a2  //选择属于 hart自己的 那一页
+  add sp, sp, a2  //选择属于 hart自己的 那一页      #sp=0x8000_aec0
 
   bnez a3, .LmultiHartInit #如果不为0，表示有多个hart
 
-#ifdef ZERO_BSS
+#ifdef ZERO_BSS  (no this)
   # Zero out BSS; linker script provides alignment and padding
   la t0, _fbss
   la t1, _end
@@ -295,9 +296,10 @@ do_reset:
 #endif
 
   # Boot on the first hart
-  j init_first_hart
+  j init_first_hart             #0号cpu  开始出发-----------------------------------------------------------------------
 
-.LmultiHartInit:
+
+.LmultiHartInit:                #1 2 3号cpu  开始等待-----------------------------------------------------------------------
   # set MSIE bit to receive IPI 核间中断(Inter-Processor Interrupts,IPI）
   li a2, MIP_MSIP 
   csrw mie, a2     #使能 M-软件中断 (中断局部开关)
