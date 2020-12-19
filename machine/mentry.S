@@ -82,7 +82,7 @@ trap_vector:
 
   # Yes.  First, clear the MIPI bit.
   LOAD a0, MENTRY_IPI_OFFSET(sp) 
-  sw x0, (a0)
+  sw x0, (a0)                        #清除CLINT中的IPI寄存器
   fence
 
   # Now, decode the cause(s).  编译器内置宏定义
@@ -96,8 +96,9 @@ trap_vector:
 #4种ipi类型的处理方式 ，a0表示具体哪种类型
   and a1, a0, IPI_SOFT
   beqz a1, 1f
-  csrs mip, MIP_SSIP  #设置  M-软件中断;  IPI_SOFT类型的实现方式 是通过软件中断
-                      #                 下面的另外三种类型，是执行指令（fence.i、sfence.vma、wfi）
+  csrs mip, MIP_SSIP  #清除 M-软件中断 pending;  IPI_SOFT类型的实现方式 是通过软件中断
+                      
+  #下面的另外三种类型，是执行指令（fence.i、sfence.vma、wfi）
 1:
   andi a1, a0, IPI_FENCE_I
   beqz a1, 1f

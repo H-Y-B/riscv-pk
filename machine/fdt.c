@@ -349,7 +349,7 @@ static void clint_done(const struct fdt_scan_node *node, void *extra)
       if (hart_phandles[hart] == phandle)
         break;
     
-    //将HLS中的指针 与 CLINT 中的各个寄存器 绑定
+    //将HLS中的指针 与 CLINT 中的各个寄存器 绑定(每一个处理器核 都有对应的  ipi和timecmp 寄存器)
     if (hart < MAX_HARTS) {
       hls_t *hls = OTHER_HLS(hart);
       hls->ipi = (void*)((uintptr_t)scan->reg + index * 4);                //Machine mode software interrupt (IPI)

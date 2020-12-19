@@ -208,7 +208,7 @@ void init_first_hart(uintptr_t hartid, uintptr_t dtb)
   query_plic(dtb);
   //query_chosen(dtb);
 
-  wake_harts();
+  wake_harts(); //@处理器0 向clint中的其他对应的处理器ipi寄存器写1，触发软件中断，来唤醒其他的处理器
 
   plic_init();
   hart_plic_init();
