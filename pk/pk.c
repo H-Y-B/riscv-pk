@@ -78,6 +78,12 @@ static void init_tf(trapframe_t* tf, long pc, long sp)
 {
   memset(tf, 0, sizeof(*tf));
   tf->status = (read_csr(sstatus) &~ SSTATUS_SPP &~ SSTATUS_SIE) | SSTATUS_SPIE;
+  //SPP : 1
+  //SIE : 0  disable all interrupt in S-mode
+  //SPIE: 1   
+  //S-mode发生trap   SPIE<-SIE  SIE <-0
+  //SRET             SIE <-SPIE SPIE<-1    SPP为1，进入U-mode； SPP为0,进入S-mode；SPP<-0
+  
   tf->gpr[2] = sp;
   tf->epc = pc;
 }
@@ -162,7 +168,7 @@ static void run_loaded_program(size_t argc, char** argv, uintptr_t kstack_top)
   init_tf(&tf, current.entry, stack_top);
   __clear_cache(0, 0);
   write_csr(sscratch, kstack_top);
-  start_user(&tf);
+  start_user(&tf);   //进入U-mode，in pk/entry.S
 }
 
 static void rest_of_boot_loader(uintptr_t kstack_top)
@@ -184,7 +190,7 @@ static void rest_of_boot_loader(uintptr_t kstack_top)
 void boot_loader(uintptr_t dtb)
 {
   extern char trap_entry;
-  write_csr(stvec, &trap_entry);
+  write_csr(stvec, &trap_entry);//中断异常向量入口
   write_csr(sscratch, 0);
   write_csr(sie, 0);
   set_csr(sstatus, SSTATUS_SUM | SSTATUS_FS | SSTATUS_VS);

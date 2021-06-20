@@ -214,7 +214,7 @@ void init_first_hart(uintptr_t hartid, uintptr_t dtb)
   hart_plic_init();
   //prci_test();  //检测 软件中断 和  时钟中断  是否能够 触发
   memory_init();
-  boot_loader(dtb);
+  boot_loader(dtb);//pk or bbl
 }
 
 void init_other_hart(uintptr_t hartid, uintptr_t dtb)

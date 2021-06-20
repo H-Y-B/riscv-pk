@@ -64,7 +64,7 @@ trap_entry:
 1:addi sp,sp,-320
   save_tf
   move  a0,sp
-  jal handle_trap
+  jal handle_trap   # S模式下的中断异常处理程序
 
   mv a0,sp
   # don't restore sscratch if trap came from kernel
@@ -75,8 +75,8 @@ trap_entry:
   
   .globl start_user
 start_user:
-  LOAD t0, 32*REGBYTES(a0)
-  LOAD t1, 33*REGBYTES(a0)
+  LOAD t0, 32*REGBYTES(a0)  # trapframe_t.status
+  LOAD t1, 33*REGBYTES(a0)  # trapframe_t.epc     elf_entry
   csrw sstatus, t0
   csrw sepc, t1
 
