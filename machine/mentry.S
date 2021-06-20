@@ -284,7 +284,8 @@ do_reset:
 
   bnez a3, .LmultiHartInit #如果不为0，表示有多个hart
 
-#ifdef ZERO_BSS  (no this)
+#ifdef ZERO_BSS  
+  #(no this)
   # Zero out BSS; linker script provides alignment and padding
   la t0, _fbss
   la t1, _end
@@ -305,7 +306,8 @@ do_reset:
   csrw mie, a2     #使能 M-软件中断 (中断局部开关)
 
 .LmultiHart:
-#if MAX_HARTS > 1    # MAX_HARTS=8
+#if MAX_HARTS > 1    
+  # MAX_HARTS=8
   # wait for an IPI to signal that it's safe to boot
   wfi
   #当处理器执行到WFI指令之后，将会停止执行当前的指令流，进入一种空闲状态。
