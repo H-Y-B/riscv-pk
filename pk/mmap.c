@@ -33,6 +33,7 @@ static uintptr_t __page_alloc()
 {
   kassert(next_free_page != free_pages);
   uintptr_t addr = first_free_page + RISCV_PGSIZE * next_free_page++;
+  printm("页表地址： %x\n",addr);
   memset((void*)addr, 0, RISCV_PGSIZE);
   return addr;
 }
@@ -43,7 +44,7 @@ static vmr_t* __vmr_alloc(uintptr_t addr, size_t length, file_t* file,
   if (!vmrs) {
     spinlock_lock(&vm_lock);
       if (!vmrs) {
-        vmr_t* page = (vmr_t*)__page_alloc();
+        vmr_t* page = (vmr_t*)__page_alloc();//申请页表
         mb();
         vmrs = page;
       }
@@ -96,7 +97,7 @@ static pte_t* __walk_create(uintptr_t addr);
 
 static pte_t* __attribute__((noinline)) __continue_walk_create(uintptr_t addr, pte_t* pte)
 {
-  *pte = ptd_create(ppn(__page_alloc()));
+  *pte = ptd_create(ppn(__page_alloc()));//申请页表
   return __walk_create(addr);
 }
 
@@ -367,11 +368,14 @@ uintptr_t do_mprotect(uintptr_t addr, size_t length, int prot)
 }
 
 void __map_kernel_range(uintptr_t vaddr, uintptr_t paddr, size_t len, int prot)
-{
-  uintptr_t n = ROUNDUP(len, RISCV_PGSIZE) / RISCV_PGSIZE;
+{ 
+  uintptr_t n = ROUNDUP(len, RISCV_PGSIZE) / RISCV_PGSIZE;//0000_0816
+  printm("内核页的个数为  %x  \n",n);
   uintptr_t offset = paddr - vaddr;
   for (uintptr_t a = vaddr, i = 0; i < n; i++, a += RISCV_PGSIZE)
   {
+	//a [80000000：80815000]
+	printm("vaddr: %x\n",a);
     pte_t* pte = __walk_create(a);
     kassert(pte);
     *pte = pte_create((a + offset) >> RISCV_PGSHIFT, prot_to_type(prot, 0));
@@ -394,15 +398,22 @@ uintptr_t pk_vm_init()
 {
   // HTIF address signedness and va2pa macro both cap memory size to 2 GiB
   mem_size = MIN(mem_size, 1U << 31);
+  printm("mem_size : %x\n",mem_size);//8000_0000
   size_t mem_pages = mem_size >> RISCV_PGSHIFT;
-  free_pages = MAX(8, mem_pages >> (RISCV_PGLEVEL_BITS-1));
+  printm("mem_pages : %x\n",mem_pages);//0008_0000
+  free_pages = MAX(8, mem_pages >> (RISCV_PGLEVEL_BITS-1));//需要创建页表的个数 : 三级页表个数*2
+  printm("free_pages : %x\n",free_pages);//0000_0800
 
   extern char _end;
-  first_free_page = ROUNDUP((uintptr_t)&_end, RISCV_PGSIZE);
-  first_free_paddr = first_free_page + free_pages * RISCV_PGSIZE;
+  first_free_page = ROUNDUP((uintptr_t)&_end, RISCV_PGSIZE);      //8001_6000
+  first_free_paddr = first_free_page + free_pages * RISCV_PGSIZE; //8081_6000
 
-  root_page_table = (void*)__page_alloc();
-  __map_kernel_range(DRAM_BASE, DRAM_BASE, first_free_paddr - DRAM_BASE, PROT_READ|PROT_WRITE|PROT_EXEC);
+  root_page_table = (void*)__page_alloc();//申请页表
+  __map_kernel_range(DRAM_BASE,                    //vaddr
+				  	 DRAM_BASE, 				   //paddr
+					 first_free_paddr - DRAM_BASE, //length
+					 PROT_READ|PROT_WRITE|PROT_EXEC//prot
+					 );
 
   current.mmap_max = current.brk_max =
     MIN(DRAM_BASE, mem_size - (first_free_paddr - DRAM_BASE));
@@ -413,7 +424,7 @@ uintptr_t pk_vm_init()
   current.stack_top = stack_bottom + stack_size;
 
   flush_tlb();
-  write_csr(sptbr, ((uintptr_t)root_page_table >> RISCV_PGSHIFT) | SATP_MODE_CHOICE);
+  write_csr(sptbr, ((uintptr_t)root_page_table >> RISCV_PGSHIFT) | SATP_MODE_CHOICE);//开启虚拟内存
 
   uintptr_t kernel_stack_top = __page_alloc() + RISCV_PGSIZE;
   return kernel_stack_top;
